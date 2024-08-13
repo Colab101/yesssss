@@ -112,41 +112,4 @@ def download_models(default_model, previous_default_models, checkpoint_downloads
         file_name='pytorch_model.bin'
     )
 
-    if args.disable_preset_download:
-        print('Skipped model download.')
-        return default_model, checkpoint_downloads
-
-    if not args.always_download_new_model:
-        if not os.path.isfile(get_file_from_folder_list(default_model, config.paths_checkpoints)):
-            for alternative_model_name in previous_default_models:
-                if os.path.isfile(get_file_from_folder_list(alternative_model_name, config.paths_checkpoints)):
-                    print(f'You do not have [{default_model}] but you have [{alternative_model_name}].')
-                    print(f'Fooocus will use [{alternative_model_name}] to avoid downloading new models, '
-                          f'but you are not using the latest models.')
-                    print('Use --always-download-new-model to avoid fallback and always get new models.')
-                    checkpoint_downloads = {}
-                    default_model = alternative_model_name
-                    break
-
-    for file_name, url in checkpoint_downloads.items():
-        model_dir = os.path.dirname(get_file_from_folder_list(file_name, config.paths_checkpoints))
-        load_file_from_url(url=url, model_dir=model_dir, file_name=file_name)
-    for file_name, url in embeddings_downloads.items():
-        load_file_from_url(url=url, model_dir=config.path_embeddings, file_name=file_name)
-    for file_name, url in lora_downloads.items():
-        model_dir = os.path.dirname(get_file_from_folder_list(file_name, config.paths_loras))
-        load_file_from_url(url=url, model_dir=model_dir, file_name=file_name)
-    for file_name, url in vae_downloads.items():
-        load_file_from_url(url=url, model_dir=config.path_vae, file_name=file_name)
-
-    return default_model, checkpoint_downloads
-
-
-config.default_base_model_name, config.checkpoint_downloads = download_models(
-    config.default_base_model_name, config.previous_default_models, config.checkpoint_downloads,
-    config.embeddings_downloads, config.lora_downloads, config.vae_downloads)
-
-config.update_files()
-init_cache(config.model_filenames, config.paths_checkpoints, config.lora_filenames, config.paths_loras)
-
 from webui import *
